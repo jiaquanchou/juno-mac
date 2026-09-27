@@ -10,36 +10,20 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: arm64
-          - goos: darwin
-            goarch: amd64
-          - goos: darwin
-            goarch: arm64
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
 
-      - name: 构建
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: 0
-        run: |
-          go build -trimpath \
-            -ldflags "-s -w -X github.com/jiaquanchou/juno-mac/internal/build.Version=${GITHUB_REF_NAME}" \
-            -o dist/juno-mac-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/juno-mac
-
-      - name: 发布到 GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Run goreleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
-          files: dist/*
-          generate_release_notes: true
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

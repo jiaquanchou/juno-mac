@@ -4,6 +4,7 @@
 [![Go](https://img.shields.io/badge/go-1.22%2B-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![CI](https://github.com/jiaquanchou/juno-mac/actions/workflows/ci.yml/badge.svg)](https://github.com/jiaquanchou/juno-mac/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jiaquanchou/juno-mac)](https://github.com/jiaquanchou/juno-mac/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jiaquanchou/juno-mac)](https://goreportcard.com/report/github.com/jiaquanchou/juno-mac)
 
 [简体中文](./README.md) | [English](./README_EN.md)
 
@@ -43,7 +44,14 @@ go build -o juno-mac ./cmd/juno-mac
 ./juno-mac --version
 ```
 
-Or grab a prebuilt binary (darwin/linux, amd64/arm64) from [Releases](https://github.com/jiaquanchou/juno-mac/releases).
+或安装到 GOPATH（需要 Go 1.22+）：
+
+```bash
+go install github.com/jiaquanchou/juno-mac/cmd/juno-mac@latest
+```
+
+也可以从 [Releases](https://github.com/jiaquanchou/juno-mac/releases) 下载对应平台的压缩包（含 SHA256 校验和，darwin/linux/windows，amd64/arm64）。
+
 
 ### 2. Configure
 
@@ -84,62 +92,64 @@ Then, in the Yearning UI, add a data source pointing to the audited MySQL and a 
 ## Rule support matrix
 
 `✅` implemented (follows the official rule switch) ｜ `⚠️` partial ｜ `❌` not implemented
+Generated from the `AuditRole` struct by [tools/gen-rules-matrix](./tools/gen-rules-matrix/main.go); CI enforces sync with the code.
 
-### DML rules
-
-| Rule | Status | Notes |
-|---|---|---|
-| `DMLWhere` | ✅ | UPDATE/DELETE require a WHERE clause (**off by default** in Yearning) |
-| `DMLAllowLimitSTMT` | ✅ | Allow LIMIT in DML |
-| `DMLInsertColumns` | ✅ | INSERT must declare columns |
-| `DMLMaxInsertRows` | ✅ | Max rows per INSERT |
-| `DMLWhereExprValueIsNull` | ✅ | Warn on NULL comparisons in WHERE |
-| `DMLOrder` | ✅ | Warn on ORDER BY in DML |
-| `DMLSelect` | ✅ | Forbid SELECT inside DML orders |
-| `DMLAllowInsertNull` | ✅ | Warn on NULL inserts |
-| `DMLInsertMustExplicitly` | ⚠️ | Same code path as `DMLInsertColumns` |
-| `DMLTransaction` | ❌ | Transactional execution not implemented (autocommit per statement) |
-
-### DDL rules
-
-| Rule | Status | Notes |
-|---|---|---|
-| `DDLEnablePrimaryKey` | ✅ | Table must have a primary key |
-| `DDLEnableAutoIncrement` | ✅ | Warn when PK is not AUTO_INCREMENT |
-| `DDLEnableAutoincrementUnsigned` | ✅ | Warn on signed auto-increment columns |
-| `DDLEnableDropTable` | ✅ | Forbid DROP/TRUNCATE |
-| `DDLEnableDropDatabase` | ✅ | Forbid DROP DATABASE |
-| `DDLCheckTableComment` | ✅ | Warn when table comment missing |
-| `DDlCheckColumnComment` | ✅ | Warn when column comment missing |
-| `DDLCheckColumnNullable` | ✅ | Suggest NOT NULL |
-| `DDLCheckColumnDefault` | ✅ | Warn when default value missing |
-| `DDLCheckFloatDouble` | ✅ | Suggest DECIMAL over FLOAT/DOUBLE |
-| `DDLMaxCharLength` | ✅ | char/varchar length limit |
-| `DDLMaxKey` / `DDLMaxKeyParts` | ✅ | Index count / index parts limits |
-| `MaxTableNameLen` | ✅ | Table name length limit |
-| `MaxAffectRows` | ✅ | Affected-rows limit (exact COUNT for UPDATE/DELETE, VALUES count for INSERT) |
-| `SupportCharset` / `SupportCollation` | ✅ | Charset/collation whitelist |
-| `CheckIdentifier` | ✅ | Reserved-word check (built-in list) |
-| `MustHaveColumns` | ✅ | Required columns on CREATE TABLE |
-| `DDLMultiToCommit` | ✅ | Max one DDL statement per order |
-| `DDLAllowMultiAlter` | ✅ | Forbid multi-spec single ALTER |
-| `DDLAllowColumnType` | ✅ | Forbid column type changes |
-| `DDLAllowChangeColumnPosition` | ✅ | Warn on AFTER/FIRST |
-| `DDLEnableForeignKey` | ✅ | Forbid foreign keys |
-| `AllowCreateView` / `AllowCreatePartition` | ✅ | Forbid views / partitioned tables |
-| `DDLPrimaryKeyMust` | ✅ | PK must be named id |
-| `DDLEnableNullIndexName` | ✅ | Forbid empty index names |
-| `DDLIndexNameSpec` | ❌ | Index naming convention |
-| `DDLEnableAcrossDBRename` | ❌ | Cross-database rename |
-| `DDLEnableAutoincrementInit` | ❌ | AUTO_INCREMENT initial value |
-| `MaxDDLAffectRows` | ❌ | DDL affected-rows limit |
-| `DDLImplicitTypeConversion` | ❌ | Implicit type conversion |
-| `DDLAllowPRINotInt` | ❌ | Non-int primary key |
-| `DDLColumnsMustHaveIndex` | ❌ | Columns that must be indexed |
-| `AllowCrateViewWithSelectStar` | ❌ | CREATE VIEW with SELECT * |
-| `AllowSpecialType` | ❌ | Special column types |
-| `IsOSC` / `OSCExpr` / `OscSize` | ❌ | pt-online-schema-change |
-| `PRIRollBack` | ❌ | PK rollback |
+<!-- rules-matrix:en:start -->
+| Rule | Category | Status | Notes |
+|---|---|---|---|
+| `DMLTransaction` | DML | ❌ | Transactional execution not implemented (autocommit per statement) |
+| `DMLAllowLimitSTMT` | DML | ✅ | Allow LIMIT in DML |
+| `DMLInsertColumns` | DML | ✅ | INSERT must declare columns |
+| `DMLMaxInsertRows` | DML | ✅ | Max rows per INSERT |
+| `DMLWhere` | DML | ✅ | UPDATE/DELETE require a WHERE clause (off by default in Yearning) |
+| `DMLWhereExprValueIsNull` | DML | ✅ | Warn on NULL comparisons in WHERE |
+| `DMLOrder` | DML | ✅ | Warn on ORDER BY in DML |
+| `DMLSelect` | DML | ✅ | Forbid SELECT inside DML orders |
+| `DMLAllowInsertNull` | DML | ✅ | Warn on NULL inserts |
+| `DMLInsertMustExplicitly` | DML | ⚠️ | Same code path as DMLInsertColumns |
+| `DDLEnablePrimaryKey` | DDL | ✅ | Table must have a primary key |
+| `DDLCheckTableComment` | DDL | ✅ | Warn when table comment missing |
+| `DDlCheckColumnComment` | General | ✅ | Warn when column comment missing |
+| `DDLCheckColumnNullable` | DDL | ✅ | Suggest NOT NULL |
+| `DDLCheckColumnDefault` | DDL | ✅ | Warn when default value missing |
+| `DDLEnableAcrossDBRename` | DDL | ❌ | Cross-database rename |
+| `DDLEnableAutoincrementInit` | DDL | ❌ | AUTO_INCREMENT initial value |
+| `DDLEnableAutoIncrement` | DDL | ✅ | Warn when PK is not AUTO_INCREMENT |
+| `DDLEnableAutoincrementUnsigned` | DDL | ✅ | Warn on signed auto-increment columns |
+| `DDLEnableDropTable` | DDL | ✅ | Forbid DROP/TRUNCATE |
+| `DDLEnableDropDatabase` | DDL | ✅ | Forbid DROP DATABASE |
+| `DDLEnableNullIndexName` | DDL | ✅ | Forbid empty index names |
+| `DDLIndexNameSpec` | DDL | ❌ | Index naming convention |
+| `DDLMaxKeyParts` | DDL | ✅ | Index parts limit |
+| `DDLMaxKey` | DDL | ✅ | Index count limit |
+| `DDLMaxCharLength` | DDL | ✅ | char/varchar length limit |
+| `MaxTableNameLen` | General | ✅ | Table name length limit |
+| `MaxAffectRows` | General | ✅ | Affected-rows limit (exact COUNT for UPDATE/DELETE, VALUES count for INSERT) |
+| `MaxDDLAffectRows` | General | ❌ | DDL affected-rows limit |
+| `SupportCharset` | General | ✅ | Charset whitelist |
+| `SupportCollation` | General | ✅ | Collation whitelist |
+| `CheckIdentifier` | General | ✅ | Reserved-word check (built-in list) |
+| `MustHaveColumns` | General | ✅ | Required columns on CREATE TABLE |
+| `DDLMultiToCommit` | DDL | ✅ | One DDL statement per order |
+| `DDLPrimaryKeyMust` | DDL | ✅ | PK must be named id |
+| `DDLAllowColumnType` | DDL | ✅ | Forbid column type changes |
+| `DDLImplicitTypeConversion` | DDL | ❌ | Implicit type conversion |
+| `DDLAllowPRINotInt` | DDL | ❌ | Non-int primary key |
+| `DDLAllowMultiAlter` | DDL | ✅ | Forbid multi-spec single ALTER |
+| `DDLEnableForeignKey` | DDL | ✅ | Forbid foreign keys |
+| `DDLTablePrefix` | DDL | ✅ | Table name prefix |
+| `DDLColumnsMustHaveIndex` | DDL | ❌ | Columns that must be indexed |
+| `DDLAllowChangeColumnPosition` | DDL | ✅ | Warn on AFTER/FIRST |
+| `DDLCheckFloatDouble` | DDL | ✅ | Suggest DECIMAL over FLOAT/DOUBLE |
+| `IsOSC` | OSC | ❌ | pt-online-schema-change |
+| `OSCExpr` | OSC | ❌ | pt-online-schema-change |
+| `OscSize` | OSC | ❌ | pt-online-schema-change |
+| `AllowCreateView` | General | ✅ | Forbid views |
+| `AllowCrateViewWithSelectStar` | General | ❌ | CREATE VIEW with SELECT * |
+| `AllowCreatePartition` | General | ✅ | Forbid partitioned tables |
+| `AllowSpecialType` | General | ❌ | Special column types |
+| `PRIRollBack` | General | ❌ | PK rollback |
+<!-- rules-matrix:en:end -->
 
 ## RPC contract
 

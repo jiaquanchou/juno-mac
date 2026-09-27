@@ -4,6 +4,7 @@
 [![Go](https://img.shields.io/badge/go-1.22%2B-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 [![CI](https://github.com/jiaquanchou/juno-mac/actions/workflows/ci.yml/badge.svg)](https://github.com/jiaquanchou/juno-mac/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jiaquanchou/juno-mac)](https://github.com/jiaquanchou/juno-mac/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jiaquanchou/juno-mac)](https://goreportcard.com/report/github.com/jiaquanchou/juno-mac)
 
 [简体中文](./README.md) | [English](./README_EN.md)
 
@@ -43,7 +44,14 @@ go build -o juno-mac ./cmd/juno-mac
 ./juno-mac --version
 ```
 
-或从 [Releases](https://github.com/jiaquanchou/juno-mac/releases) 直接下载对应平台的二进制（darwin/linux，amd64/arm64）。
+或安装到 GOPATH（需要 Go 1.22+）：
+
+```bash
+go install github.com/jiaquanchou/juno-mac/cmd/juno-mac@latest
+```
+
+也可以从 [Releases](https://github.com/jiaquanchou/juno-mac/releases) 下载对应平台的压缩包（含 SHA256 校验和，darwin/linux/windows，amd64/arm64）。
+
 
 ### 2. 配置
 
@@ -95,62 +103,64 @@ Yearning 侧随后添加数据源（指向被审计的 MySQL）与流程模板�
 ## 规则支持矩阵
 
 `✅` 已实现（按官方规则开关生效）｜ `⚠️` 部分实现 ｜ `❌` 未实现（对应规则开关不生效）
+矩阵由 [tools/gen-rules-matrix](./tools/gen-rules-matrix/main.go) 从 `AuditRole` 结构体自动生成，CI 强制校验与代码同步。
 
-### DML 规则
-
-| 规则字段 | 状态 | 说明 |
-|---|---|---|
-| `DMLWhere` | ✅ | UPDATE/DELETE 必须携带 WHERE（**官方默认关闭**） |
-| `DMLAllowLimitSTMT` | ✅ | 是否允许 DML 使用 LIMIT |
-| `DMLInsertColumns` | ✅ | INSERT 必须显式声明列名 |
-| `DMLMaxInsertRows` | ✅ | 单条 INSERT 最大行数 |
-| `DMLWhereExprValueIsNull` | ✅ | WHERE 与 NULL 比较告警 |
-| `DMLOrder` | ✅ | DML 中的 ORDER BY 告警 |
-| `DMLSelect` | ✅ | DML 工单禁含 SELECT |
-| `DMLAllowInsertNull` | ✅ | INSERT 含 NULL 告警 |
-| `DMLInsertMustExplicitly` | ⚠️ | 与 `DMLInsertColumns` 同路径 |
-| `DMLTransaction` | ❌ | 事务化执行未实现（当前逐条自动提交） |
-
-### DDL 规则
-
-| 规则字段 | 状态 | 说明 |
-|---|---|---|
-| `DDLEnablePrimaryKey` | ✅ | 表必须有主键 |
-| `DDLEnableAutoIncrement` | ✅ | 主键建议自增 |
-| `DDLEnableAutoincrementUnsigned` | ✅ | 自增列建议 unsigned |
-| `DDLEnableDropTable` | ✅ | DROP/TRUNCATE 禁用 |
-| `DDLEnableDropDatabase` | ✅ | DROP DATABASE 禁用 |
-| `DDLCheckTableComment` | ✅ | 表注释告警 |
-| `DDlCheckColumnComment` | ✅ | 列注释告警 |
-| `DDLCheckColumnNullable` | ✅ | NOT NULL 建议 |
-| `DDLCheckColumnDefault` | ✅ | 默认值告警 |
-| `DDLCheckFloatDouble` | ✅ | float/double 建议 decimal |
-| `DDLMaxCharLength` | ✅ | char/varchar 长度上限 |
-| `DDLMaxKey` / `DDLMaxKeyParts` | ✅ | 索引数量 / 单索引字段数上限 |
-| `MaxTableNameLen` | ✅ | 表名长度上限 |
-| `MaxAffectRows` | ✅ | 影响行数上限（UPDATE/DELETE 精确 COUNT，INSERT 按 VALUES 数） |
-| `SupportCharset` / `SupportCollation` | ✅ | 字符集/排序规则白名单 |
-| `CheckIdentifier` | ✅ | 保留字检查（内置保留字表） |
-| `MustHaveColumns` | ✅ | 建表必须字段 |
-| `DDLMultiToCommit` | ✅ | 单工单多条 DDL 限制 |
-| `DDLAllowMultiAlter` | ✅ | 单条 ALTER 多操作限制 |
-| `DDLAllowColumnType` | ✅ | 禁改列类型 |
-| `DDLAllowChangeColumnPosition` | ✅ | AFTER/FIRST 位置告警 |
-| `DDLEnableForeignKey` | ✅ | 外键禁用 |
-| `AllowCreateView` / `AllowCreatePartition` | ✅ | 视图/分区禁用 |
-| `DDLPrimaryKeyMust` | ✅ | 主键名必须为 id |
-| `DDLEnableNullIndexName` | ✅ | 空索引名检查 |
-| `DDLIndexNameSpec` | ❌ | 索引命名规范 |
-| `DDLEnableAcrossDBRename` | ❌ | 跨库表迁移 |
-| `DDLEnableAutoincrementInit` | ❌ | 自增初始值 |
-| `MaxDDLAffectRows` | ❌ | DDL 影响行数上限 |
-| `DDLImplicitTypeConversion` | ❌ | 隐式类型转换 |
-| `DDLAllowPRINotInt` | ❌ | 主键非整型 |
-| `DDLColumnsMustHaveIndex` | ❌ | 指定列必须有索引 |
-| `AllowCrateViewWithSelectStar` | ❌ | CREATE VIEW SELECT * |
-| `AllowSpecialType` | ❌ | 特殊类型 |
-| `IsOSC` / `OSCExpr` / `OscSize` | ❌ | pt-OSC 相关 |
-| `PRIRollBack` | ❌ | 主键回滚 |
+<!-- rules-matrix:zh:start -->
+| 规则字段 | 分类 | 状态 | 说明 |
+|---|---|---|---|
+| `DMLTransaction` | DML | ❌ | 事务化执行未实现（当前逐条自动提交） |
+| `DMLAllowLimitSTMT` | DML | ✅ | 是否允许 DML 使用 LIMIT |
+| `DMLInsertColumns` | DML | ✅ | INSERT 必须显式声明列名 |
+| `DMLMaxInsertRows` | DML | ✅ | 单条 INSERT 最大行数 |
+| `DMLWhere` | DML | ✅ | UPDATE/DELETE 必须携带 WHERE（官方默认关闭） |
+| `DMLWhereExprValueIsNull` | DML | ✅ | WHERE 与 NULL 比较告警 |
+| `DMLOrder` | DML | ✅ | DML 中的 ORDER BY 告警 |
+| `DMLSelect` | DML | ✅ | DML 工单禁含 SELECT |
+| `DMLAllowInsertNull` | DML | ✅ | INSERT 含 NULL 告警 |
+| `DMLInsertMustExplicitly` | DML | ⚠️ | 与 DMLInsertColumns 同路径 |
+| `DDLEnablePrimaryKey` | DDL | ✅ | 表必须有主键 |
+| `DDLCheckTableComment` | DDL | ✅ | 表注释告警 |
+| `DDlCheckColumnComment` | 通用 | ✅ | 列注释告警 |
+| `DDLCheckColumnNullable` | DDL | ✅ | NOT NULL 建议 |
+| `DDLCheckColumnDefault` | DDL | ✅ | 默认值告警 |
+| `DDLEnableAcrossDBRename` | DDL | ❌ | 跨库表迁移 |
+| `DDLEnableAutoincrementInit` | DDL | ❌ | 自增初始值 |
+| `DDLEnableAutoIncrement` | DDL | ✅ | 主键建议自增 |
+| `DDLEnableAutoincrementUnsigned` | DDL | ✅ | 自增列建议 unsigned |
+| `DDLEnableDropTable` | DDL | ✅ | DROP/TRUNCATE 禁用 |
+| `DDLEnableDropDatabase` | DDL | ✅ | DROP DATABASE 禁用 |
+| `DDLEnableNullIndexName` | DDL | ✅ | 空索引名检查 |
+| `DDLIndexNameSpec` | DDL | ❌ | 索引命名规范 |
+| `DDLMaxKeyParts` | DDL | ✅ | 单个索引字段数上限 |
+| `DDLMaxKey` | DDL | ✅ | 索引数量上限 |
+| `DDLMaxCharLength` | DDL | ✅ | char/varchar 长度上限 |
+| `MaxTableNameLen` | 通用 | ✅ | 表名长度上限 |
+| `MaxAffectRows` | 通用 | ✅ | 影响行数上限（UPDATE/DELETE 精确 COUNT，INSERT 按 VALUES 数） |
+| `MaxDDLAffectRows` | 通用 | ❌ | DDL 影响行数上限 |
+| `SupportCharset` | 通用 | ✅ | 字符集白名单 |
+| `SupportCollation` | 通用 | ✅ | 排序规则白名单 |
+| `CheckIdentifier` | 通用 | ✅ | 保留字检查（内置保留字表） |
+| `MustHaveColumns` | 通用 | ✅ | 建表必须字段 |
+| `DDLMultiToCommit` | DDL | ✅ | 单工单多条 DDL 限制 |
+| `DDLPrimaryKeyMust` | DDL | ✅ | 主键名必须为 id |
+| `DDLAllowColumnType` | DDL | ✅ | 禁改列类型 |
+| `DDLImplicitTypeConversion` | DDL | ❌ | 隐式类型转换 |
+| `DDLAllowPRINotInt` | DDL | ❌ | 主键非整型 |
+| `DDLAllowMultiAlter` | DDL | ✅ | 单条 ALTER 多操作限制 |
+| `DDLEnableForeignKey` | DDL | ✅ | 外键禁用 |
+| `DDLTablePrefix` | DDL | ✅ | 表名前缀 |
+| `DDLColumnsMustHaveIndex` | DDL | ❌ | 指定列必须有索引 |
+| `DDLAllowChangeColumnPosition` | DDL | ✅ | AFTER/FIRST 位置告警 |
+| `DDLCheckFloatDouble` | DDL | ✅ | float/double 建议 decimal |
+| `IsOSC` | OSC | ❌ | pt-OSC 相关 |
+| `OSCExpr` | OSC | ❌ | pt-OSC 相关 |
+| `OscSize` | OSC | ❌ | pt-OSC 相关 |
+| `AllowCreateView` | 通用 | ✅ | 视图禁用 |
+| `AllowCrateViewWithSelectStar` | 通用 | ❌ | CREATE VIEW SELECT * |
+| `AllowCreatePartition` | 通用 | ✅ | 分区表禁用 |
+| `AllowSpecialType` | 通用 | ❌ | 特殊类型 |
+| `PRIRollBack` | 通用 | ❌ | 主键回滚 |
+<!-- rules-matrix:zh:end -->
 
 ## RPC 契约
 

@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-27
+
+### Added
+
+- 规则支持矩阵生成器 [tools/gen-rules-matrix](./tools/gen-rules-matrix/main.go)：从 `AuditRole` 结构体自动生成中/英 README 矩阵，`--check` 供 CI 强制校验两端与代码一致
+- 新增 Windows（amd64/arm64）平台构建
+
+### Changed
+
+- Release 流水线迁移到 [goreleaser](https://goreleaser.com)：发布产物改为 tar.gz/zip 压缩包（内含 README/LICENSE/CHANGELOG）并附 `checksums.txt` SHA256 校验和
+- README 新增 `go install` 安装方式与 Go Report Card 徽章
+
 ## [0.1.0] - 2026-09-27
 
 首个公开版本。
@@ -19,5 +31,6 @@
 - `-selftest` 内置自测、`--version` 版本输出
 - 单元测试（规则/回滚字面量/配置解析）与 GitHub Actions CI
 
-[Unreleased]: https://github.com/jiaquanchou/juno-mac/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jiaquanchou/juno-mac/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/jiaquanchou/juno-mac/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jiaquanchou/juno-mac/releases/tag/v0.1.0
