@@ -1,17 +1,20 @@
-module juno-mac
+module github.com/jiaquanchou/juno-mac
 
-go 1.27.0
+go 1.22.0
+
+require (
+	github.com/BurntSushi/toml v1.4.0
+	github.com/go-sql-driver/mysql v1.8.1
+	github.com/pingcap/tidb/parser v0.0.0-20231013125129-93a834a6bf8d
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
-	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/pingcap/errors v0.11.5-0.20210425183316-da1aaba5fb63 // indirect
 	github.com/pingcap/failpoint v0.0.0-20220801062533-2eaa32854a6c // indirect
 	github.com/pingcap/log v1.1.0 // indirect
-	github.com/pingcap/tidb/parser v0.0.0-20231013125129-93a834a6bf8d // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
